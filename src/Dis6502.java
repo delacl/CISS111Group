@@ -73,22 +73,18 @@ public class Dis6502 {
     private static void disassemble (byte[] bytes) {
         int pc = (bytes[1] & 0xff) * 256 + (bytes[0] & 0xff);
         int row, col=0, bal = bytes.length;
-
+        int op = bytes[2] & 0xff;
 
 
         outer:
-        for ( int x = 2; x < bal; x++) {
+        for (row = 0; row < Opcodes.length - 1; row++) {
             //THIS IS THE BIG LOOP
-            int op = bytes[2] & 0xff;
-            for ( row = 0; row < Opcodes.length - 1; row++) {
+            for ( col = 1; row < Opcodes[0].length; col++) {
                 //how big is the row (how many columns make up the row)
-                for (col = 1; col < Opcodes[0].length; col ++){
-                    if(Opcodes[row][col] == null){
-                        continue;
-                    } if ( (int)Opcodes[row][col] == op ){
-                        //breaks out of the nested loop
-                        break outer;
-                    }
+               if(Opcodes[row][col] == null) {
+                   continue;
+               } if((int) Opcodes[row][col] == op) {
+                    break outer;
                 }
             }
         }
