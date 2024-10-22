@@ -79,12 +79,12 @@ public class Dis6502 {
 
 
         outer:
-        for (row = 0; row < Opcodes.length; row++) {
+        for (row = 0; row < Opcodes.length - 1; row++) {
             //THIS IS THE BIG LOOP
-            for ( col = 1; col < Opcodes[row].length; col++) {
+            for ( col = 1; col < Opcodes[0].length; col++) {
 
                 // if Null is found AND the variable op from the binary file matches
-                //the value in the Opcodes table
+                //the value in the Opcodes table (combining the if statements posted on LMS)
                if(Opcodes[row][col] != null && (int) Opcodes[row][col] == op) {
                   break outer;
 
