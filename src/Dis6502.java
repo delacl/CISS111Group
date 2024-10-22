@@ -71,25 +71,59 @@ public class Dis6502 {
 
     // disassemble goes here...
     private static void disassemble (byte[] bytes) {
-        int pc = (bytes[1] & 0xff) * 256 + (bytes[0] & 0xff);
+        int pc = (bytes[1] & 0xff) * 256 + (bytes[0] & 0xff); //program counter
         int row, col=0, bal = bytes.length;
-        int op = bytes[2] & 0xff;
+        int op = bytes[2] & 0xff; //Gets opcode
+        int value;
+
 
 
         outer:
-        for (row = 0; row < Opcodes.length - 1; row++) {
+        for (row = 0; row < Opcodes.length; row++) {
             //THIS IS THE BIG LOOP
-            for ( col = 1; row < Opcodes[0].length; col++) {
-                //how big is the row (how many columns make up the row)
-               if(Opcodes[row][col] == null) {
-                   continue;
-               } if((int) Opcodes[row][col] == op) {
-                    break outer;
-                }
+            for ( col = 1; col < Opcodes[row].length; col++) {
+
+                // if Null is found AND the variable op from the binary file matches
+                //the value in the Opcodes table
+               if(Opcodes[row][col] != null && (int) Opcodes[row][col] == op) {
+                  break outer;
+
+
+               }
             }
         }
-        System.out.println("\n\nRow is " + row + "\nCol is " + col);
+
         switch(col) {
+            //IMM (Immediate ~ first col)
+            case 1:
+                value = bytes[3] & 0xff;
+                //prints pc in hexadecimal (%04x), then opcode in uppercase(%02X), then the immediate value
+                //(%02X), then the instruction from the names column (%s), then the immediate value
+                // with #$ in front
+                System.out.printf("%04X: %02X %02X    %s #$%02X\n", pc, op, value, Opcodes[row][0], value);
+                break;
+
+            //ZP (Zero Page ~ second col)
+            case 2:
+                value = bytes[3] & 0xff;
+                //Only difference from case 1 is that the second %02X prints the zero page address and at the
+                //end it prints the address in zero page mode (so starts with $)
+                System.out.printf("%04X: %02X %02X    %s $%02X\n", pc, op, value, Opcodes[row][0], value);
+                break;
+
+            //ABS (Absolute ~ third col)
+            case 3:
+                value = (bytes[4] & 0xff) * 256 + (bytes[3] & 0xff);
+                //This one has a second and third '%02X' because they both represent the two-byte memory address
+                //(EX: if value = 0x4000 --> 00 40), then at the end it prints the full 16-bit
+                //address with $ (EX: $4000)
+                System.out.printf("%04X: %02X %02X %02X    %s $%04X\n", pc, op, bytes[3] & 0xff, bytes[4] & 0xff, Opcodes[row][0], value);
+                break;
+
+            //Continue adding other cases for other columns here
+
+            default:
+                System.out.printf("%04X: %02X    UNKNOWN\n", pc, op);
 
         }
     }
@@ -97,12 +131,24 @@ public class Dis6502 {
 
     public static void main(String[] args) throws IOException {
 
-        FileInputStream in = new FileInputStream("congrats.prg");
+        //FileInputStream in = new FileInputStream("congrats.prg");
 
-        byte[] file = in.readAllBytes();
-        in.close();
+       // byte[] file = in.readAllBytes();
+      //  in.close();
 
-        hexDump(file);
-        disassemble(file);
+      //  hexDump(file);
+      //  disassemble(file);
+
+        //TESTING THE IMM CASE
+        byte[] imm_bytes = {0x00, 0x30, (byte) 0xA9, 0x25};
+        disassemble(imm_bytes);
+
+        //TESTING THE ZP CASE
+        byte[] zp_bytes = {0x00, 0x30, (byte) 0xA5, 0x10};
+        disassemble(zp_bytes);
+
+        //TESTING THE ABS CASE
+        byte[] abs_bytes = {0x00, 0x30, (byte) 0xAD, 0x00, 0x40};
+        disassemble(abs_bytes);
     }
 }
